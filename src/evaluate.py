@@ -1,55 +1,146 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
     recall_score,
     f1_score,
+    roc_auc_score,
+    confusion_matrix,
+    classification_report,
+    ConfusionMatrixDisplay,
     mean_absolute_error,
     mean_squared_error,
     r2_score
 )
 
 
-def classification_metrics(y_test, y_pred):
+def evaluate_classification_metrics(
+    name: str,
+    model: object,
+    X_test,
+    y_test
+) -> dict:
 
     """
-    Calculate classification metrics
+    Evaluate classification model performance.
+
+    Parameters:
+    ----------
+    name : str
+        Model name
+
+    model : trained ML model
+        Trained classifier
+
+    X_test : array-like
+        Test features
+
+    y_test : array-like
+        Actual labels
+
+    Returns:
+    -------
+    dict
+        Updated results list
     """
 
-    accuracy = accuracy_score(y_test, y_pred)
+    predictions = model.predict(X_test)
 
-    precision = precision_score(y_test, y_pred)
+    accuracy = accuracy_score(y_test, predictions)
+    precision = precision_score(y_test, predictions)
+    recall = recall_score(y_test, predictions)
+    f1 = f1_score(y_test, predictions)
 
-    recall = recall_score(y_test, y_pred)
+    roc_auc = roc_auc_score(
+        y_test,
+        model.predict_proba(X_test)[:, 1]
+    )
 
-    f1 = f1_score(y_test, y_pred)
+    print("=" * 50)
+    print(name)
+    print("=" * 50)
 
+    print(f"Accuracy  : {accuracy}")
+    print(f"Precision : {precision}")
+    print(f"Recall    : {recall}")
+    print(f"F1 Score  : {f1}")
+    print(f"ROC-AUC   : {roc_auc}")
+
+    print("\nClassification Report\n")
+
+    print(classification_report(y_test, predictions))
+
+    cm = confusion_matrix(y_test, predictions)
+
+    ConfusionMatrixDisplay(confusion_matrix=cm).plot()
+
+    plt.title(f"Confusion Matrix - {name}")
+    plt.show()
+        
     return {
-        "accuracy": accuracy,
-        "precision": precision,
-        "recall": recall,
-        "f1_score": f1
+        'Model': name,
+        'Accuracy': accuracy,
+        'Precision': precision,
+        'Recall': recall,
+        'F1 Score': f1,
+        'ROC-AUC': roc_auc
     }
 
 
-def regression_metrics(y_test, y_pred):
+def evaluate_regression_model(
+    name: str,
+    model: object,
+    X_test,
+    y_test
+):
+    """
+    Evaluate Regression model performance.
 
+    Parameters:
+    ----------
+    name : str
+        Model name
+
+    model : trained ML model
+        Trained classifier
+
+    X_test : array-like
+        Test features
+
+    y_test : array-like
+        Actual labels
+
+    Returns:
+    -------
+    dict
+        Updated results list
     """
-    Calculate regression metrics
-    """
+
+    predictions = model.predict(X_test)
     
-    mae = mean_absolute_error(y_test, y_pred)
+    mae = mean_absolute_error(y_test, predictions)
 
-    mse = mean_squared_error(y_test, y_pred)
+    mse = mean_squared_error(y_test, predictions)
 
-    rmse = mse ** 0.5
+    rmse = np.sqrt(mse)
 
-    r2 = r2_score(y_test, y_pred)
+    r2 = r2_score(y_test, predictions)
+
+    print("=" * 50)
+    print(name)
+    print("=" * 50)
+
+    print(f"MAE  : {mae}")
+    print(f"MSE  : {mse}")
+    print(f"RMSE : {rmse}")
+    print(f"R2   : {r2}")
 
     return {
-        "mae": mae,
-        "mse": mse,
-        "rmse": rmse,
-        "r2_score": r2
+        "Model": name,
+        "MAE": mae,
+        "MSE": mse,
+        "RMSE": rmse,
+        "R2": r2
     }
